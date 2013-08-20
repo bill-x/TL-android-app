@@ -372,7 +372,7 @@ public class TLLib {
 	// TODO: Get rid of all these TagNode functions. Their respective Activity classes should call TagNodeFromURLEx2 directly
 	public static TagNode TagNodeFromURLShowForumList(HtmlCleaner cleaner, URL url,
 			Handler handler, Context context) throws IOException{
-			return TagNodeFromURLEx2(cleaner, url, handler, context, "<TABLE cellpadding=0 cellspacing=0 width=\"764\" >", true);
+			return TagNodeFromURLEx2(cleaner, url, handler, context, "<table cellpadding=0 cellspacing=0>", true);
 	}
 
 	public static TagNode TagNodeFromURLLoginToken(HtmlCleaner cleaner, URL url, Handler handler, Context context) throws IOException {
