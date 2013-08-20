@@ -23,38 +23,24 @@
 package org.opensourcetlapp.tl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 
-import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
-import org.opensourcetlapp.tl.R;
-import org.opensourcetlapp.tl.Adapters.ForumsListCurosrAdapter;
+import org.opensourcetlapp.tl.Adapters.ForumsListCursorAdapter;
 
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.net.DhcpInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.ListFragment;
 import android.support.v4.widget.CursorAdapter;
-import android.text.Html;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
@@ -66,9 +52,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.ProgressBar;
-import android.widget.SimpleCursorAdapter;
-import android.widget.TextView;
 
 public class ShowForumList extends ListFragment implements Runnable  {
 	public static final String TAG = "main";
@@ -248,7 +231,7 @@ public class ShowForumList extends ListFragment implements Runnable  {
 			if (msg.what == 0 && this.progressStatus == TLHandler.PROGRESS_OKAY){
 				progressDialog.dismiss();
 				
-				ForumsListCurosrAdapter adapter = new ForumsListCurosrAdapter(getActivity(), R.layout.show_forum_list_row,R.layout.show_sub_forum_list_row, forumsCursor, new String [] {"name"}, new int [] {android.R.id.text1},CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+				ForumsListCursorAdapter adapter = new ForumsListCursorAdapter(getActivity(), R.layout.show_forum_list_row,R.layout.show_sub_forum_list_row, forumsCursor, new String [] {"name"}, new int [] {android.R.id.text1},CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
 				setListAdapter(adapter);	
 			}
 

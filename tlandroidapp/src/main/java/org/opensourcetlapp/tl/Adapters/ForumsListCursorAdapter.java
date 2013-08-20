@@ -18,7 +18,7 @@ import android.support.v4.widget.SimpleCursorAdapter;
 import android.text.format.Time;
 import android.widget.TextView;
 
-public class ForumsListCurosrAdapter extends SimpleCursorAdapter {
+public class ForumsListCursorAdapter extends SimpleCursorAdapter {
 	
 	private final Context mContext;
 	private final int mLayout;
@@ -34,7 +34,7 @@ public class ForumsListCurosrAdapter extends SimpleCursorAdapter {
 	
 	
 
-	public ForumsListCurosrAdapter(Context context, int layout,int layoutSub, Cursor c, String[] from, int[] to,int flags) {
+	public ForumsListCursorAdapter(Context context, int layout, int layoutSub, Cursor c, String[] from, int[] to, int flags) {
 	    super(context, layout, c, from, to,flags);
 
 	    this.mContext = context;
