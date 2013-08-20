@@ -600,5 +600,14 @@ public class TLLib {
 			e.printStackTrace();
 		}		
 	}
+
+    /**
+     * From http://pivotallabs.com/xpath-css-class-matching/
+     * @param className
+     * @return
+     */
+    public static String xpathContainingClass(String className) {
+        return "contains(concat(' ',normalize-space(@class),' '),' " + className + " ')";
+    }
 	
 }

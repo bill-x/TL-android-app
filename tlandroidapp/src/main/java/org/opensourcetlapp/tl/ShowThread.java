@@ -4,11 +4,14 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.ContentNode;
+import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.XPatherException;
 import org.opensourcetlapp.tl.Structs.PostInfo;
+import org.w3c.dom.Document;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -44,6 +47,12 @@ import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 public class ShowThread extends Activity implements Runnable {
 
@@ -229,7 +238,8 @@ public class ShowThread extends Activity implements Runnable {
 			}
 			
 			Object[] posts =  node.evaluateXPath("//table[@width='742']/tbody/tr");
-			int offset = ((TagNode)posts[posts.length-1]).evaluateXPath("//form[@name='theform']").length > 0 ? 2 : 2;
+			// There are currently 3 extra trs for logged out users (one for an ad)
+			int offset = ((TagNode)posts[posts.length-1]).evaluateXPath("//form[@name='theform']").length > 0 ? 2 : 3;
 			
 			if (TLLib.loginStatus == true) {
 				TagNode subNode = forumTagNode.findElementByAttValue("id", "subscribe_link", true, true);			
@@ -259,19 +269,24 @@ public class ShowThread extends Activity implements Runnable {
 			for (int i = 0;i<posts.length - offset;i++) {
 				TagNode post = (TagNode)posts[i];
 				Object[] postTr = post.evaluateXPath("//table[@width='752']/tbody/tr");
-				TagNode header = (TagNode)postTr[0];
-				TagNode content = parsePostContent(postTr);
-				
-				PostData postData = new PostData();
-				
-				TagNode firstTd = (TagNode)((TagNode)postTr[1]).getChildren().get(0);
-				boolean type = (firstTd.getAttributeByName("class").equals("forumPost"));
-				
-				postData.setContent(BASE_JS + cleaner.getInnerHtml(((TagNode)content.evaluateXPath("//td[@class='forumPost']")[0])));
-				
-				postData.buildHeader(type,header);
-				
-				postList[i] = postData;
+				try {
+					TagNode header = (TagNode)postTr[0];// Somehow header was not found for a post
+					TagNode content = parsePostContent(postTr);
+
+					PostData postData = new PostData();
+
+					TagNode firstTd = (TagNode)((TagNode)postTr[1]).getChildren().get(0);
+					boolean type = (firstTd.getAttributeByName("class").equals("forumPost"));
+
+					postData.setContent(BASE_JS + cleaner.getInnerHtml(((TagNode)content.evaluateXPath("//td[@class='forumPost']")[0])));
+
+					postData.buildHeader(type,header);
+
+					postList[i] = postData;
+				} catch (ArrayIndexOutOfBoundsException e ){
+					Log.e("post", "Post missing a header, this may cause problems but ignoring for now");
+				}
+
 			}
 			
 			
@@ -450,7 +465,22 @@ public class ShowThread extends Activity implements Runnable {
 
 		public void buildHeader(boolean type2, TagNode post) {
 			try {
-				this.setIcon(((TagNode)post.evaluateXPath("//img")[0]).getAttributeByName("src"));
+				Document doc = new DomSerializer(new CleanerProperties()).createDOM(post);
+				XPath xpath = XPathFactory.newInstance().newXPath(); // Probably want to keep an instance around somewhere
+				String usericonStr = (String) xpath.evaluate("//div["+TLLib.xpathContainingClass("usericon")+"]/@class", doc, XPathConstants.STRING);
+
+				if (post.evaluateXPath("//img").length > 0){
+				    this.setIcon(((TagNode)post.evaluateXPath("//img")[0]).getAttributeByName("src"));
+				}else if(usericonStr.length() > 0){
+					// This is a stupid hack, but it sort of works
+					String iconClass = usericonStr;
+					String iconType = iconClass.substring(iconClass.lastIndexOf(' ')+1);
+					this.setIcon(String.format("http://teamliquid.net/stupidhacks/%s.gif", iconType));
+				}else{
+					Log.w("usericon", "Couldn't figure out what icon to use, set T0 as a placeholder");
+					this.setIcon("http://teamliquid.net/stupidhacks/T0.gif");
+				}
+
 				if (!type2) {
 					TagNode node = null;
 					
@@ -463,7 +493,7 @@ public class ShowThread extends Activity implements Runnable {
 					
 					String[] infos = null;
 					
-					if (node.getChildren().size() > 2 && ((TagNode)node.getChildren().get(1)).getName().equals("img")) {
+					if (node.getChildren().size() > 2 && !((TagNode)node.getChildren().get(1)).getName().equals("script")) {
 						/** Depending on the size on the header get the poster and the country/date string */
 						if (node.getChildren().size() > 6) {
 						
@@ -519,11 +549,17 @@ public class ShowThread extends Activity implements Runnable {
 				
 				
 				this.setType(type2 ? "news" : "normal");
-			
+
 			} catch (XPatherException e) {
 				Log.d("show thread", "Problem parsing header's stuff");
+				Log.d("show thread", "exception", e);
+			} catch (ParserConfigurationException e) {
+				Log.d("show thread", "Problem parsing header's stuff");
+				Log.d("show thread", "exception", e);
+			} catch (XPathExpressionException e) {
+				Log.d("show thread", "Problem parsing header's stuff");
+				Log.d("show thread", "exception", e);
 			}
-			
 		}
 
 		public void setContent(String content) {
