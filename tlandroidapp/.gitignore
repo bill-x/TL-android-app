@@ -5,7 +5,10 @@ bin/*
 
 *.class
 *.swp
+
+*.iml
 /gen
 /bin
-/changelog
 /.classpath
+
+/changelog
